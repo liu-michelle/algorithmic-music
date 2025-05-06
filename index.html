@@ -39,6 +39,7 @@
   const amen = 'https://algorithmicmusic.online/audios/amen-break.mp3'
   const chorus = new Tone.Reverb().toDestination();
   const player = new Tone.Player(amen).chain(chorus);
+  player.volume.value = -9;
 
   const timecodes = [{
       offset: 1.8017901897601145,
@@ -146,17 +147,44 @@
     }
   }
 
+  const ambient = new Tone.Player({
+    url: 'talking-people-6368.mp3',
+    volume: -11,
+    loop: true,
+    autostart: true
+  }).toDestination();
+  
+  let pitch = 0;
+  const flute = new Tone.Player({
+    url: 'flute.wav',
+    volume: -21,
+    loop: true,
+    autostart: true
+  })
+  
+  const pitchShift = new Tone.PitchShift(pitch);
+  flute.connect(pitchShift);
+  
+  pitchShift.toDestination();
+
+  setInterval(() => {
+      if (pitchShift.pitch > 7) {
+    pitchShift.pitch = 0;
+  }
+    pitchShift.pitch += 1;
+  }, 6000);
+  
   // events listeners
   nn.on('keydown', attack)
   nn.on('keyup', release)
 
-  function generatePhrase() {
+  function newPhrase() {
     const length = Math.floor(nn.random() * 6) + 3;
 
     const middle = [];
     for (let i = 0; i < length - 2; i++) {
-      const randIndex = Math.floor(nn.random() * timecodes.length);
-      middle.push(randIndex);
+      const r = Math.floor(nn.random() * timecodes.length);
+      middle.push(r);
     }
 
     return [1, ...middle, 1];
@@ -174,7 +202,7 @@
   window.addEventListener('load', () => {
     Tone.start();
     setInterval(() => {
-      const phrase = generatePhrase();
+      const phrase = newPhrase();
       playPhrase(phrase);
     }, 500);
   });
